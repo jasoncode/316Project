@@ -1,9 +1,9 @@
 SELECT                                                
-first_name,last_name,count(id)
+EXTRACT(year FROM date) as year, first_name,last_name,count(id)
 FROM                                    
-	(SELECT foo.id, position, vote, person_id, first_name, middle_name, last_name
+	(SELECT foo.id, position, vote, person_id, first_name, middle_name, last_name,date 
 	FROM                      
-		(SELECT bar.id, position, person_id, vote
+		(SELECT bar.id, position, person_id, vote, date
 		FROM 
 			(SELECT * 
 			  FROM presidential_support JOIN votes
@@ -16,4 +16,4 @@ FROM
 	ON person_id = persons.id
 	) AS bob                                             
 WHERE first_name = 'Harry' and last_name = 'Reid'
-GROUP BY first_name, middle_name, last_name;
+GROUP BY first_name, middle_name, last_name, EXTRACT(YEAR from date);
