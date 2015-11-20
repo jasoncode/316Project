@@ -1,0 +1,4 @@
+Kushal Byatnal - Wrote SQL queries for the information in question
+Thomas Bagley - Wrote SQL queries for the information in question, writeup
+Jason Novack - Idea brainstorming, HTML setup, began server setup
+Sachet Bangia - Worked on highchart.js and word cloud visualization for the obtained information, writeup
