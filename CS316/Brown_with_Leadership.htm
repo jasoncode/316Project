@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            <title>Highcharts Example</title>
+            
+            <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+            <!--        <script src="http://code.highcharts.com/adapters/standalone-framework.js"></script>-->
+            <style type="text/css">
+                ${demo.css}
+                </style>
+            <script type="text/javascript">
+                $(function () {
+                  
+                  var years = ["2011", "2012", "2013", "2014"];
+                  $(document).ready(function () {
+                                    $('#container').highcharts({
+                                                               chart: {
+                                                               type: 'column'
+                                                               },
+                                                               title: {
+                                                               text: "Votes by Sherrod Brown (D-OH) compared to the Leadership's vote"
+                                                               },
+                                                               subtitle: {
+                                                               text: 'Source: <a href="http://www.govtrack.us/developers">Govtrack.us</a>'
+                                                               },
+                                                               xAxis: [{
+                                                                       title: {
+                                                                       text: 'Year'
+                                                                       },
+                                                                       categories: years,
+                                                                       reversed: false,
+                                                                       labels: {
+                                                                       step: 1
+                                                                       }
+                                                                       }, { // mirror axis on right side
+                                                                       opposite: true,
+                                                                       reversed: false,
+                                                                       categories: years,
+                                                                       linkedTo: 0,
+                                                                       labels: {
+                                                                       step: 1
+                                                                       }
+                                                                       }],
+                                                               yAxis: {
+                                                               title: {
+                                                               text: 'Votes'
+                                                               },
+                                                               labels: {
+                                                               formatter: function () {
+                                                               return Math.abs(this.value);
+                                                               }
+                                                               }
+                                                               },
+                                                               
+                                                               plotOptions: {
+                                                               series: {
+                                                               stacking: 'normal'
+                                                               }
+                                                               },
+                                                               
+                                                               tooltip: {
+                                                               formatter: function () {
+                                                               return '<b>' + this.series.name + 's in year ' + this.point.category + '</b><br/>' +
+                                                               'Count: ' + Highcharts.numberFormat(Math.abs(this.point.y), 0);
+                                                               }
+                                                               },
+                                                               
+                                                               series: [{
+                                                                        name: 'Disagree',
+                                                                        data:  [-23, -28, -30, -24]
+                                                                        }, {
+                                                                        name: 'Agree',
+                                                                        data: [212, 222, 262, 342]
+                                                                        }]
+                                                               });
+                                    });
+                  
+                  });                </script>
+            </head>
+    <body>
+        <script src="js/highcharts.js"></script>
+        <script src="js/highcharts-more.js"></script>
+        <script src="js/modules/exporting.js"></script>
+        
+        
+        <div id="container" style="height: 400px; margin: auto; min-width: 310px; max-width: 700px"></div>
+    </body>
+</html>

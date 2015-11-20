@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            <title>Highcharts Example</title>
+            
+            <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+            <!--        <script src="http://code.highcharts.com/adapters/standalone-framework.js"></script>-->
+            <style type="text/css">
+                ${demo.css}
+                </style>
+            <script type="text/javascript">
+                $(function () {
+                  // Age categories
+                  var categories = ['Less similar', 'More similar'];
+                  $(document).ready(function () {
+                                    $('#container').highcharts({
+                                                               chart: {
+                                                               type: 'bar'
+                                                               },
+                                                               title: {
+                                                               text: 'Congresspersons more/less similar to Sherrod Brown than Maria Cantwell '
+                                                               },
+                                                               subtitle: {
+                                                               text: 'Source: <a href="http://www.govtrack.us/developers">GovTrack.us</a>'
+                                                               },
+                                                               xAxis: [{
+                                                                       
+                                                                       categories: categories,
+                                                                       reversed: false,
+                                                                       labels: {
+                                                                       step: 1
+                                                                       }
+                                                                       }, { // mirror axis on right side
+                                                                       opposite: true,
+                                                                       reversed: false,
+                                                                       categories: categories,
+                                                                       linkedTo: 0,
+                                                                       labels: {
+                                                                       step: 1
+                                                                       }
+                                                                       }],
+                                                               yAxis: {
+                                                               allowDecimals: false,
+                                                               title: {
+                                                               text: null
+                                                               },
+                                                               labels: {
+                                                               formatter: function () {
+                                                               return Math.abs(this.value);
+                                                               }
+                                                               }
+                                                               },
+                                                               
+                                                               plotOptions: {
+                                                               series: {
+                                                               stacking: 'normal'
+                                                               }
+                                                               },
+                                                               
+                                                               tooltip: {
+                                                               formatter: function () {
+                                                               return '<b>' + this.series.name  +'</b><br/>' +
+                                                               'Count: ' + Highcharts.numberFormat(Math.abs(this.point.y), 0);
+                                                               }
+                                                               },
+                                                               
+                                                               
+                                                               series: [{
+                                                                        name: 'Democrat',
+                                                                        data: [{y: 23, color: '#232066'}, {y: 22, color: '#232066'}], showInLegend: false 
+                                                                        }, {
+                                                                        name: 'Republican',
+                                                                        data: [{y: -53, color: '#E91D0E'}, {y: -0, color: '#E91D0E'}], showInLegend: false
+                                                                        }]
+                                                               });
+                                    });
+                  
+                  });                </script>
+            </head>
+    <body>
+        <script src="js/highcharts.js"></script>
+        <script src="js/highcharts-more.js"></script>
+        <script src="js/modules/exporting.js"></script>
+        
+        
+        <div id="container" style="height: 400px; margin: auto; min-width: 310px; max-width: 700px"></div>
+    </body>
+</html>
