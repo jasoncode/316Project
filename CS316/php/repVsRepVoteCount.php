@@ -9,7 +9,7 @@
 		$rep2First = $_POST['rep2First'];
 		$rep2Last = $_POST['rep2Last'];
 
-		$dbconn = pg_connect("dbname=us_congress host=localhost user=postgres password=kushal941")
+		$dbconn = pg_connect("dbname=us_congress host=localhost user=postgres password=Bd3nM2!Vg27aJ!0")
     				or die('Could not connect: ' . pg_last_error());
 
     	$agree_arr = array();
@@ -17,35 +17,37 @@
     	$agreeWithPres_arr = array();
     	$disagreeWithPres_arr = array();
 
-$relevantVotesSQL = "SELECT votes.id, votes.date, relevantVoteIDs.bill_id, relevantVoteIDs.type
-		     FROM votes JOIN
-				(SELECT bill_id, vote_id, type
- 				FROM votes_re_bills JOIN (
-						    SELECT * 
-						    FROM bills 
-						    WHERE bills.type = 'hr' OR bills.type = 's' OR bills.type = 'hjres' or bills.type = 'sjres') AS relevantBills
-						    ON votes_re_bills.bill_id = relevantBills.id) AS relevantVoteIDs
-				ON votes.id = relevantVoteIDs.vote_id";
 
-				
-
-$relevantVotes = pg_query($dbconn, $relevantVotesSQL) or die('Query failed: ' . pg_last_error());
-
-$agreeSQL = "SELECT COUNT(*) AS agreedCount, EXTRACT (YEAR FROM p1votes.date) AS YEAR, (p1votes.first_name || ' ' || p1votes.last_name) AS Person1, (p2votes.first_name || ' ' || p2votes.last_name) AS Person2
+$agreeSQL = "SELECT COUNT(*) AS agreedCount,YEAR, Person1, Person2
+						FROM
+			(SELECT EXTRACT (YEAR FROM p1votes.date) AS YEAR, (p1votes.first_name || ' ' || p1votes.last_name) AS Person1, (p2votes.first_name || ' ' || p2votes.last_name) AS Person2,p1votes.vote_id
 			FROM
 					(((SELECT first_name, last_name, vote_id, vote
 					FROM (persons JOIN person_votes ON persons.id = person_votes.person_id)
-					WHERE first_name = '".$rep1First."' AND last_name = '".$rep1Last."') p1 JOIN ".$relevantVotes" ON p1.vote_id = votes.id) p1votes
-								JOIN 
+					WHERE first_name = '".$rep1First."' AND last_name = '".$rep1Last."') p1 JOIN votes ON p1.vote_id = votes.id) p1votes
+								JOIN
 									((SELECT first_name, last_name, vote_id, vote
 									FROM (persons JOIN person_votes ON persons.id = person_votes.person_id)
-									WHERE first_name = '".$rep2First."' AND last_name = '".$rep2Last."') p1 JOIN ".$relevantVotes" ON p1.vote_id = votes.id) p2votes
+									WHERE first_name = '".$rep2First."' AND last_name = '".$rep2Last."') p1 JOIN votes ON p1.vote_id = votes.id) p2votes
 								ON p1votes.vote_id = p2votes.vote_id AND
 								   p1votes.vote = p2votes.vote)
+									 GROUP BY p1votes.first_name, p1votes.last_name, p2votes.first_name, p2votes.last_name,EXTRACT(YEAR FROM p1votes.date), p1votes.vote_id) AS allAgreements
 
 
-			EXCEPT
-			
+		  JOIN
+
+			(SELECT votes.id, votes.date, relevantVoteIDs.bill_id, relevantVoteIDs.type
+					     FROM votes JOIN
+							(SELECT bill_id, vote_id, type
+			 				FROM votes_re_bills JOIN (
+									    SELECT *
+									    FROM bills
+									    WHERE bills.type = 'hr' OR bills.type = 's' OR bills.type = 'hjres' or bills.type = 'sjres') AS relevantBills
+									    ON votes_re_bills.bill_id = relevantBills.id) AS relevantVoteIDs
+							ON votes.id = relevantVoteIDs.vote_id) AS relevantVotes
+
+				ON relevantVotes.id = allAgreements.vote_id
+
 			GROUP BY YEAR, Person1, Person2";
 
 			$result1 = pg_query($dbconn, $agreeSQL) or die('Query failed: ' . pg_last_error());
@@ -54,24 +56,46 @@ $agreeSQL = "SELECT COUNT(*) AS agreedCount, EXTRACT (YEAR FROM p1votes.date) AS
     				array_push($agree_arr, intval($line[0]));
 			}
 
-	pg_free_result($result1);		
+	pg_free_result($result1);
 
-$disagreeSQL = "SELECT COUNT(*) AS disagreedCount, EXTRACT (YEAR FROM p1votes.date) AS YEAR, (p1votes.first_name || ' ' || p1votes.last_name) AS Person1, (p2votes.first_name || ' ' || p2votes.last_name) AS Person2
+$disagreeSQL = "SELECT COUNT(*) as agreedCount,YEAR, Person1, Person2
+						FROM
+			(SELECT EXTRACT (YEAR FROM p1votes.date) AS YEAR, (p1votes.first_name || ' ' || p1votes.last_name) AS Person1, (p2votes.first_name || ' ' || p2votes.last_name) AS Person2, p1votes.vote_id
 			FROM
 					(((SELECT first_name, last_name, vote_id, vote
 					FROM (persons JOIN person_votes ON persons.id = person_votes.person_id)
-					WHERE first_name = '".$rep1First."' AND last_name = '".$rep1Last."') p1 JOIN ".$relevantVotes" ON p1.vote_id = votes.id) p1votes
-								JOIN 
+					WHERE first_name = '".$rep1First."' AND last_name = '".$rep1Last."') p1 JOIN votes ON p1.vote_id = votes.id) p1votes
+								JOIN
 									((SELECT first_name, last_name, vote_id, vote
 									FROM (persons JOIN person_votes ON persons.id = person_votes.person_id)
-									WHERE first_name = '".$rep2First."' AND last_name = '".$rep2Last."') p1 JOIN ".$relevantVotes" ON p1.vote_id = votes.id) p2votes
-								ON p1votes.vote_id = p2votes.vote_id AND
-								   p1votes.vote <> p2votes.vote      AND
-								   (p1votes.vote <> 'Not Voting' OR
-								   	p2votes.vote <> 'Not Voting'))
+									WHERE first_name = '".$rep2First."' AND last_name = '".$rep2Last."') p1 JOIN votes ON p1.vote_id = votes.id) p2votes
+									ON
+									p1votes.vote_id = p2votes.vote_id AND
+										 p1votes.vote <> p2votes.vote      AND
+										 (p1votes.vote <> 'Not Voting' OR
+											p2votes.vote <> 'Not Voting'))
+
+									 GROUP BY p1votes.first_name, p1votes.last_name, p2votes.first_name, p2votes.last_name,EXTRACT(YEAR FROM p1votes.date), p1votes.vote_id) AS allDisagreements
+
+
+		  JOIN
+
+			(SELECT votes.id, votes.date, relevantVoteIDs.bill_id, relevantVoteIDs.type
+					     FROM votes JOIN
+							(SELECT bill_id, vote_id, type
+			 				FROM votes_re_bills JOIN (
+									    SELECT *
+									    FROM bills
+									    WHERE bills.type = 'hr' OR bills.type = 's' OR bills.type = 'hjres' or bills.type = 'sjres') AS relevantBills
+									    ON votes_re_bills.bill_id = relevantBills.id) AS relevantVoteIDs
+							ON votes.id = relevantVoteIDs.vote_id) AS relevantVotes
+
+				ON relevantVotes.id = allDisagreements.vote_id
+
 			GROUP BY YEAR, Person1, Person2";
 
 			$result2 = pg_query($dbconn, $disagreeSQL) or die('Query failed: ' . pg_last_error());
+
 
 			while ($line = pg_fetch_row($result2)) {
     				array_push($disagree_arr, intval($line[0]));
@@ -79,14 +103,14 @@ $disagreeSQL = "SELECT COUNT(*) AS disagreedCount, EXTRACT (YEAR FROM p1votes.da
 
 			pg_free_result($result2);
 
-$presAgreeSQL = "SELECT                                                
+$presAgreeSQL = "SELECT
 EXTRACT(year FROM date) as year, first_name,last_name,count(id) as agreeCount
-FROM                                    
-	(SELECT president_person_vote.id, position, vote, person_id, first_name, middle_name, last_name,date 
-	FROM                      
+FROM
+	(SELECT president_person_vote.id, position, vote, person_id, first_name, middle_name, last_name,date
+	FROM
 		(SELECT presidential_vote.id, position, person_id, vote, date
-		FROM 
-			(SELECT * 
+		FROM
+			(SELECT *
 			  FROM presidential_support JOIN votes
 			  ON votes.chamber = presidential_support.chamber and votes.number = presidential_support.vote_number and presidential_support.session = votes.session
 			 )AS presidential_vote
@@ -95,9 +119,9 @@ FROM
 		) president_person_vote
 	JOIN persons
 	ON person_id = persons.id
-	) AS find_name                                             
+	) AS find_name
 WHERE first_name = '".$rep1First."' and last_name = '".$rep1Last."'
-GROUP BY first_name, middle_name, last_name, year";		
+GROUP BY first_name, middle_name, last_name, year";
 
 			$result3 = pg_query($dbconn, $presAgreeSQL) or die('Query failed: ' . pg_last_error());
 
@@ -107,14 +131,14 @@ GROUP BY first_name, middle_name, last_name, year";
 
 			pg_free_result($result3);
 
-$presDisagreeSQL = "SELECT                                                
+$presDisagreeSQL = "SELECT
 EXTRACT(YEAR FROM date) AS year, first_name,last_name,count(id) as disagreeCount
-FROM                                    
+FROM
 	(SELECT president_person_vote.id, position, vote, person_id, first_name, middle_name, last_name, date
-	FROM                      
+	FROM
 		(SELECT presidential_vote.id, position, person_id, vote, date
-		FROM 
-			(SELECT * 
+		FROM
+			(SELECT *
 			  FROM presidential_support JOIN votes
 			  ON votes.chamber = presidential_support.chamber and votes.number = presidential_support.vote_number and presidential_support.session = votes.session
 			 )AS presidential_vote
@@ -123,7 +147,7 @@ FROM
 		) AS president_person_vote
 	JOIN persons
 	ON person_id = persons.id
-	) AS find_name                                             
+	) AS find_name
 WHERE first_name = '".$rep1First."' and last_name = '".$rep1Last."'
 GROUP BY first_name, middle_name, last_name, EXTRACT(YEAR FROM date)";
 
