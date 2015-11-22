@@ -103,63 +103,8 @@ $disagreeSQL = "SELECT COUNT(*) as agreedCount,YEAR, Person1, Person2
 
 			pg_free_result($result2);
 
-$presAgreeSQL = "SELECT
-EXTRACT(year FROM date) as year, first_name,last_name,count(id) as agreeCount
-FROM
-	(SELECT president_person_vote.id, position, vote, person_id, first_name, middle_name, last_name,date
-	FROM
-		(SELECT presidential_vote.id, position, person_id, vote, date
-		FROM
-			(SELECT *
-			  FROM presidential_support JOIN votes
-			  ON votes.chamber = presidential_support.chamber and votes.number = presidential_support.vote_number and presidential_support.session = votes.session
-			 )AS presidential_vote
-		JOIN person_votes
-		ON id = vote_id AND ((vote = 'Yea' and position = 'support') OR (vote = 'Nay' and position = 'against'))
-		) president_person_vote
-	JOIN persons
-	ON person_id = persons.id
-	) AS find_name
-WHERE first_name = '".$rep1First."' and last_name = '".$rep1Last."'
-GROUP BY first_name, middle_name, last_name, year";
 
-			$result3 = pg_query($dbconn, $presAgreeSQL) or die('Query failed: ' . pg_last_error());
-
-			while ($line = pg_fetch_row($result3)) {
-    				array_push($agreeWithPres_arr, intval($line[3]));
-			}
-
-			pg_free_result($result3);
-
-$presDisagreeSQL = "SELECT
-EXTRACT(YEAR FROM date) AS year, first_name,last_name,count(id) as disagreeCount
-FROM
-	(SELECT president_person_vote.id, position, vote, person_id, first_name, middle_name, last_name, date
-	FROM
-		(SELECT presidential_vote.id, position, person_id, vote, date
-		FROM
-			(SELECT *
-			  FROM presidential_support JOIN votes
-			  ON votes.chamber = presidential_support.chamber and votes.number = presidential_support.vote_number and presidential_support.session = votes.session
-			 )AS presidential_vote
-		JOIN person_votes
-		ON id = vote_id AND ((vote = 'Yea' and position = 'against') OR (vote = 'Nay' and position = 'support'))
-		) AS president_person_vote
-	JOIN persons
-	ON person_id = persons.id
-	) AS find_name
-WHERE first_name = '".$rep1First."' and last_name = '".$rep1Last."'
-GROUP BY first_name, middle_name, last_name, EXTRACT(YEAR FROM date)";
-
-			$result4 = pg_query($dbconn, $presDisagreeSQL) or die('Query failed: ' . pg_last_error());
-
-			while ($line = pg_fetch_row($result4)) {
-    				array_push($disagreeWithPres_arr, intval($line[3]));
-			}
-
-			pg_free_result($result4);
-
-			$resultArray = array($agree_arr, $disagree_arr, $agreeWithPres_arr, $disagreeWithPres_arr);
+			$resultArray = array($agree_arr, $disagree_arr);
 
 			echo json_encode($resultArray);
 
